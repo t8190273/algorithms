@@ -1,0 +1,25 @@
+import sys
+
+def ektiposi_grafou(grafos):
+    for kombos in sorted(grafos.keys(), reverse=True):
+        geitones = sorted(grafos[kombos], reverse=True)
+        print(f"{kombos} -> {geitones}")
+
+def main():
+    if len(sys.argv) < 4:
+        print("Χρήση: python transposition_graphs.py s t {graph,dfs,bts} [start]")
+        return
+
+    s = int(sys.argv[1])
+    t = int(sys.argv[2])
+    entoli = sys.argv[3]
+
+    if entoli == "graph":
+        grafos = dimiourgia_grafou(s, t)
+        ektiposi_grafou(grafos)
+    else:
+        print("Μη υποστηριζόμενη εντολή για αυτό το μέρος του κώδικα.")
+
+# Προσομοίωση κλήσης μέσω τερματικού
+sys.argv = ["transposition_graphs.py", "2", "2", "graph"]
+main()
