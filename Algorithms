@@ -1,25 +1,80 @@
 import sys
+import itertools
+from collections import defaultdict
 
-def ektiposi_grafou(grafos):
-    for kombos in sorted(grafos.keys(), reverse=True):
-        geitones = sorted(grafos[kombos], reverse=True)
-        print(f"{kombos} -> {geitones}")
+# ------------------------
+# Δημιουργία γράφου μεταθέσεων
+# ------------------------
+def dimiourgia_grafou(s, t):
+    mikos = s + t
+    kombi = set(itertools.permutations('0' * s + '1' * t))
+    kombi = {''.join(k) for k in kombi}
 
-def main():
-    if len(sys.argv) < 4:
-        print("Χρήση: python transposition_graphs.py s t {graph,dfs,bts} [start]")
-        return
+    pinakas = {k: int(k, 2) for k in kombi}
+    grafos = defaultdict(list)
 
-    s = int(sys.argv[1])
-    t = int(sys.argv[2])
-    entoli = sys.argv[3]
+    for k1 in pinakas.values():
+        for k2 in pinakas.values():
+            if k1 >= k2:
+                continue
+            bin1 = format(k1, f'0{mikos}b')
+            bin2 = format(k2, f'0{mikos}b')
+            diafora = [i for i, (a, b) in enumerate(zip(bin1, bin2)) if a != b]
+            if len(diafora) == 2 and bin1[diafora[0]] == '0' and bin1[diafora[1]] == '1' and bin2[diafora[0]] == '1' and bin2[diafora[1]] == '0':
+                grafos[k1].append(k2)
+                grafos[k2].append(k1)
 
-    if entoli == "graph":
-        grafos = dimiourgia_grafou(s, t)
-        ektiposi_grafou(grafos)
+    return grafos
+
+# ------------------------
+# Βοηθητικές για DFS
+# ------------------------
+def se_deiktes(diadiki):
+    return [i for i, x in enumerate(diadiki) if x == '1']
+
+def einai_omogenes(p1, p2):
+    diafora = set(p1).symmetric_difference(set(p2))
+    return len(diafora) == 2
+
+def einai_genlex(monopati):
+    for i in range(1, len(monopati)):
+        proig = monopati[i-1]
+        twr = monopati[i]
+        mikos = min(len(proig), len(twr))
+        if twr[:mikos] < proig[:mikos]:
+            return False
+    return True
+
+# ------------------------
+# DFS εύρεση μονοπατιών
+# ------------------------
+def dfs_monopatia(grafos, arxi=None):
+    apotelesmata = []
+    komboi = list(grafos.keys())
+    if arxi is None:
+        arxikoi = komboi
     else:
-        print("Μη υποστηριζόμενη εντολή για αυτό το μέρος του κώδικα.")
+        arxikoi = [arxi]
 
-# Προσομοίωση κλήσης μέσω τερματικού
-sys.argv = ["transposition_graphs.py", "2", "2", "graph"]
-main()
+    for start in arxikoi:
+        stoiva = [(start, [start])]
+        while stoiva:
+            twr_kombos, monopati = stoiva.pop()
+            if len(monopati) == len(grafos):
+                apotelesmata.append(monopati)
+                continue
+
+            episkefmena = set(monopati)
+            deiktes_twr = se_deiktes(format(twr_kombos, f'0{len(format(max(grafos), "b"))}b'))
+
+            for geitonas in grafos[twr_kombos]:
+                if geitonas in episkefmena:
+                    continue
+                deiktes_geitona = se_deiktes(format(geitonas, f'0{len(format(max(grafos), "b"))}b'))
+                if einai_omogenes(deiktes_twr, deiktes_geitona):
+                    neo = monopati + [geitonas]
+                    lista_deiktwn = [se_deiktes(format(k, f'0{len(format(max(grafos), "b"))}b')) for k in neo]
+                    if einai_genlex(lista_deiktwn):
+                        stoiva.append((geitonas, neo))
+
+    return apotelesmata
